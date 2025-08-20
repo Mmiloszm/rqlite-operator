@@ -1,0 +1,70 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-adapter-rqlite
+  namespace: monitoring
+data:
+  config.yaml: |
+    rules:
+    # RQLite P95 read latency metric
+    - seriesQuery: 'rqlite_read_latency_seconds_bucket'
+      seriesFilters: []
+      resources:
+        overrides:
+          exported_namespace:
+            resource: namespace
+          cluster:
+            resource: rqlitecluster
+            group: rqlite.example.com
+      name:
+        matches: '^rqlite_read_latency_seconds_bucket$'
+        as: "rqlite_p95_read_latency_ms"
+      metricsQuery: 'histogram_quantile(0.95, sum(rate(<<.Series>>{<<.LabelMatchers>>}[5m])) by (cluster, exported_namespace, le)) * 1000'
+    
+    # RQLite cluster health metric
+    - seriesQuery: 'rqlite_cluster_health_score'
+      seriesFilters: []
+      resources:
+        overrides:
+          exported_namespace:
+            resource: namespace
+          cluster:
+            resource: rqlitecluster
+            group: rqlite.example.com
+      name:
+        matches: '^rqlite_cluster_health_score$'
+        as: "rqlite_cluster_health"
+      metricsQuery: 'avg(<<.Series>>{<<.LabelMatchers>>}) by (cluster, exported_namespace)'
+    
+    # RQLite query rate metric
+    - seriesQuery: 'rqlite_queries_total'
+      seriesFilters: []
+      resources:
+        overrides:
+          exported_namespace:
+            resource: namespace
+          cluster:
+            resource: rqlitecluster
+            group: rqlite.example.com
+      name:
+        matches: '^rqlite_queries_total$'
+        as: "rqlite_query_rate"
+      metricsQuery: 'sum(rate(<<.Series>>{<<.LabelMatchers>>}[5m])) by (cluster, exported_namespace)'
+---
+apiVersion: v1
+kind: ServiceMonitor
+metadata:
+  name: rqlite-operator-metrics
+  namespace: monitoring
+  labels:
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      control-plane: controller-manager
+  endpoints:
+  - port: https
+    path: /metrics
+    scheme: https
+    tlsConfig:
+      insecureSkipVerify: true

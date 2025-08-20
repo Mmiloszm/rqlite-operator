@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- rqlitebackup_manual.yaml
+- rqlitescheduledbackup_daily.yaml
+- rqliterestore_example.yaml
+
+namespace: default
+
+commonLabels:
+  example: backup-restore

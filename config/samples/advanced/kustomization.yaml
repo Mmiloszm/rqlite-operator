@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- rqlitecluster_ha.yaml
+- rqlitecluster_rolling_updates.yaml
+- rqlitecluster_custom_config.yaml
+
+namePrefix: advanced-
+namespace: default
+
+commonLabels:
+  example: advanced-features

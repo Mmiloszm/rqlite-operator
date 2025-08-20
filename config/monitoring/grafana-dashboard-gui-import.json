@@ -1,0 +1,606 @@
+{
+  "id": null,
+  "title": "Rqlite Operator - Cluster Monitoring",
+  "tags": [
+    "rqlite",
+    "operator",
+    "kubernetes"
+  ],
+  "style": "dark",
+  "timezone": "browser",
+  "refresh": "30s",
+  "schemaVersion": 27,
+  "version": 1,
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Cluster Health Overview",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "max by (cluster) (rqlite_cluster_health)",
+          "legendFormat": "{{cluster}} Health Score",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "steps": [
+              {
+                "color": "red",
+                "value": 0
+              },
+              {
+                "color": "yellow",
+                "value": 0.7
+              },
+              {
+                "color": "green",
+                "value": 0.9
+              }
+            ]
+          },
+          "unit": "percentunit"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "id": 2,
+      "title": "Cluster Size vs Ready Replicas",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "max by (cluster) (rqlite_cluster_size)",
+          "legendFormat": "{{cluster}} - Desired Size",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rqlite_node_status) by (cluster)",
+          "legendFormat": "{{cluster}} - Ready Nodes",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      }
+    },
+    {
+      "id": 3,
+      "title": "Raft State Distribution",
+      "type": "piechart",
+      "targets": [
+        {
+          "expr": "count by (state) (rqlite_raft_state)",
+          "legendFormat": "{{state}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "vis": false
+            }
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "text": "Follower"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "1": {
+                  "text": "Candidate"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "2": {
+                  "text": "Leader"
+                }
+              },
+              "type": "value"
+            }
+          ]
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 8
+      }
+    },
+    {
+      "id": 4,
+      "title": "Quorum Status",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "max by (cluster) (rqlite_quorum_status)",
+          "legendFormat": "{{cluster}} Quorum",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "text": "UNHEALTHY"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "1": {
+                  "text": "HEALTHY"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "steps": [
+              {
+                "color": "red",
+                "value": 0
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          }
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 8
+      }
+    },
+    {
+      "id": 5,
+      "title": "Node Reachability",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "avg(rqlite_node_reachable) by (cluster)",
+          "legendFormat": "{{cluster}} Reachability",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": [
+              {
+                "color": "red",
+                "value": 0
+              },
+              {
+                "color": "yellow",
+                "value": 0.7
+              },
+              {
+                "color": "green",
+                "value": 0.9
+              }
+            ]
+          },
+          "unit": "percentunit"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 8
+      }
+    },
+    {
+      "id": 8,
+      "title": "Auto-scaling Status",
+      "type": "table",
+      "targets": [
+        {
+          "expr": "max by (cluster) (rqlite_hpa_enabled)",
+          "legendFormat": "",
+          "refId": "A",
+          "format": "table"
+        },
+        {
+          "expr": "increase(rqlite_scaling_events_total[1h])",
+          "legendFormat": "",
+          "refId": "B",
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "center",
+            "displayMode": "auto"
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "text": "Disabled"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "1": {
+                  "text": "Enabled"
+                }
+              },
+              "type": "value"
+            }
+          ]
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 24
+      }
+    },
+    {
+      "id": 9,
+      "title": "Available Backups",
+      "type": "table",
+      "targets": [
+        {
+          "expr": "rqlite_backup_info",
+          "legendFormat": "",
+          "refId": "A",
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "left",
+            "displayMode": "auto"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "backup_name"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Backup Name"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "creation_time"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Created At"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "backup_type"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Type"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 24
+      }
+    },
+    {
+      "id": 11,
+      "title": "Database Operations",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "rate(rqlite_db_executions_total[5m])",
+          "legendFormat": "{{cluster}}-{{node}} Executions/sec",
+          "refId": "A"
+        },
+        {
+          "expr": "rate(rqlite_db_queries_total[5m])",
+          "legendFormat": "{{cluster}}-{{node}} Queries/sec",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "Operations per second",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never"
+          },
+          "unit": "ops"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 40
+      }
+    },
+    {
+      "id": 12,
+      "title": "Database Errors",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "rate(rqlite_db_execution_errors_total[5m])",
+          "legendFormat": "{{cluster}}-{{node}} Execution Errors/sec",
+          "refId": "A"
+        },
+        {
+          "expr": "rate(rqlite_db_query_errors_total[5m])",
+          "legendFormat": "{{cluster}}-{{node}} Query Errors/sec",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "Errors per second",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never"
+          },
+          "unit": "ops"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 40
+      }
+    },
+    {
+      "id": 13,
+      "title": "Leadership & Raft Health",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "rqlite_raft_last_contact_seconds",
+          "legendFormat": "{{cluster}}-{{node}} Last Contact (sec)",
+          "refId": "A"
+        },
+        {
+          "expr": "rate(rqlite_raft_leader_changes_total[1h])",
+          "legendFormat": "{{cluster}} Leader Changes/hour",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never"
+          },
+          "unit": "s"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 48
+      }
+    },
+    {
+      "id": 14,
+      "title": "SQLite Database Sizes",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "rqlite_sqlite_db_size_bytes / 1024 / 1024",
+          "legendFormat": "{{cluster}}-{{node}} DB Size (MB)",
+          "refId": "A"
+        },
+        {
+          "expr": "rqlite_sqlite_wal_size_bytes / 1024 / 1024",
+          "legendFormat": "{{cluster}}-{{node}} WAL Size (MB)",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "Size (MB)",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never"
+          },
+          "unit": "bytes"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 48
+      }
+    },
+    {
+      "id": 15,
+      "title": "SQLite Connection Pool Status",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "rqlite_sqlite_connections_open",
+          "legendFormat": "{{cluster}}-{{node}}-{{type}} Open Connections",
+          "refId": "A"
+        },
+        {
+          "expr": "rqlite_sqlite_connections_idle",
+          "legendFormat": "{{cluster}}-{{node}}-{{type}} Idle Connections",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "Connections",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "pointSize": 5,
+            "showPoints": "never"
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 56
+      }
+    }
+  ]
+}

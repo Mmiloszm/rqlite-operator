@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- rqlitecluster_monitoring.yaml
+- prometheus_config.yaml
+
+namePrefix: monitoring-
+namespace: default
+
+commonLabels:
+  example: monitoring-observability

@@ -1,0 +1,33 @@
+apiVersion: rqlite.example.com/v1alpha1
+kind: RqliteCluster
+metadata:
+  name: ha-cluster
+  namespace: default
+  labels:
+    app.kubernetes.io/name: rqlite
+    app.kubernetes.io/instance: ha-cluster
+    app.kubernetes.io/component: database
+    tier: production
+spec:
+  # High availability cluster with 5 nodes
+  size: 5
+  version: "latest"
+  
+  # Storage configuration
+  storageClassName: "fast-ssd"  # Use fast storage for production
+  storageCapacity: "2Gi"
+  
+  # Strict pod anti-affinity for maximum availability
+  podAntiAffinity:
+    enabled: true
+    type: "hard"                    # Required anti-affinity
+    topologyKey: "kubernetes.io/hostname"
+  
+  # Conservative update strategy for HA
+  updateStrategy:
+    type: "RollingUpdate"
+    rollingUpdate:
+      maxUnavailable: 1             # Only one pod at a time
+      leaderUpdatePolicy: "LeaderLast"  # Update leader last
+      updateTimeout: 600            # 10 minutes timeout
+      rollbackOnFailure: true       # Auto-rollback on failure

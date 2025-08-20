@@ -1,0 +1,88 @@
+apiVersion: rqlite.example.com/v1alpha1
+kind: RqliteCluster
+metadata:
+  name: production-cluster
+  namespace: production
+  labels:
+    app.kubernetes.io/name: rqlite
+    app.kubernetes.io/instance: production-cluster
+    app.kubernetes.io/component: database
+    app.kubernetes.io/version: "8.39.0"
+    environment: production
+    tier: database
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8080"
+spec:
+  # Production-ready cluster configuration
+  size: 5
+  version: "8.39.0"
+  
+  # High-performance storage
+  storageClassName: "fast-ssd"
+  storageCapacity: "5Gi"
+  
+  # Strict anti-affinity for maximum availability
+  podAntiAffinity:
+    enabled: true
+    type: "hard"
+    topologyKey: "kubernetes.io/hostname"
+  
+  # Conservative update strategy for production
+  updateStrategy:
+    type: "RollingUpdate"
+    rollingUpdate:
+      maxUnavailable: 1
+      leaderUpdatePolicy: "LeaderLast"
+      updateTimeout: 600
+      rollbackOnFailure: true
+  
+  # Comprehensive auto-scaling for production workloads
+  autoScaling:
+    enabled: true
+    
+    hpa:
+      enabled: true
+      minReplicas: 5     # Higher minimum for production
+      maxReplicas: 15    # Scale to handle load spikes
+      
+      # Conservative resource thresholds
+      targetCPUUtilizationPercentage: 60
+      targetMemoryUtilizationPercentage: 70
+      
+      # Production-tuned custom metrics
+      customMetrics:
+        - name: rqlite_p95_read_latency_ms
+          type: External
+          targetValue: "3"   # Strict latency SLA
+          description: "P95 read query latency in milliseconds"
+        
+        - name: rqlite_cluster_health
+          type: External
+          targetValue: "0.9"  # High health requirement
+          description: "Overall cluster health score"
+      
+      # Production-grade scaling behavior
+      scaleBehavior:
+        scaleUp:
+          stabilizationWindowSeconds: 180  # Wait 3 minutes
+          selectPolicy: "Max"
+          policies:
+            - type: "Pods"
+              value: 2
+              periodSeconds: 120
+        scaleDown:
+          stabilizationWindowSeconds: 900  # Wait 15 minutes
+          selectPolicy: "Min"
+          policies:
+            - type: "Pods"
+              value: 2
+              periodSeconds: 300
+    
+    # Storage auto-expansion for production
+    storageExpansion:
+      enabled: true
+      thresholdPercentage: 75
+      expansionPercentage: 25    # Conservative expansion
+      maxCapacity: "100Gi"       # Large maximum capacity
+      checkIntervalSeconds: 300

@@ -1,0 +1,629 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.17.2
+  name: rqliteclusters.rqlite.example.com
+spec:
+  group: rqlite.example.com
+  names:
+    kind: RqliteCluster
+    listKind: RqliteClusterList
+    plural: rqliteclusters
+    singular: rqlitecluster
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: RqliteCluster is the Schema for the rqliteclusters API.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: RqliteClusterSpec defines the desired state of RqliteCluster.
+            properties:
+              autoScaling:
+                description: AutoScaling configures automatic scaling behavior
+                properties:
+                  enabled:
+                    default: false
+                    description: Enabled specifies whether auto-scaling should be
+                      enabled
+                    type: boolean
+                  hpa:
+                    description: HPA configures Horizontal Pod Autoscaler settings
+                    properties:
+                      customMetrics:
+                        description: CustomMetrics defines custom metrics for scaling
+                          decisions
+                        items:
+                          description: CustomMetricSpec defines a custom metric for
+                            HPA scaling
+                          properties:
+                            description:
+                              description: Description provides a human-readable description
+                                of the metric
+                              type: string
+                            name:
+                              description: Name is the name of the metric
+                              type: string
+                            targetValue:
+                              description: TargetValue is the target value for the
+                                metric
+                              type: string
+                            type:
+                              description: Type specifies the metric type (Pods, Resource,
+                                External)
+                              enum:
+                              - Pods
+                              - Resource
+                              - External
+                              type: string
+                          required:
+                          - name
+                          - targetValue
+                          - type
+                          type: object
+                        type: array
+                      enabled:
+                        default: false
+                        description: Enabled specifies whether HPA should be enabled
+                        type: boolean
+                      maxReplicas:
+                        default: 10
+                        description: MaxReplicas specifies the maximum number of replicas
+                        format: int32
+                        minimum: 3
+                        type: integer
+                      minReplicas:
+                        default: 3
+                        description: MinReplicas specifies the minimum number of replicas
+                        format: int32
+                        minimum: 3
+                        type: integer
+                      scaleBehavior:
+                        description: ScaleBehavior configures scaling behavior policies
+                        properties:
+                          scaleDown:
+                            description: ScaleDown configures scale-down behavior
+                            properties:
+                              policies:
+                                description: Policies defines scaling rate policies
+                                items:
+                                  description: ScalingPolicyRule defines a single
+                                    scaling policy rule
+                                  properties:
+                                    periodSeconds:
+                                      default: 60
+                                      description: PeriodSeconds specifies the time
+                                        period for this rule
+                                      format: int32
+                                      type: integer
+                                    type:
+                                      description: Type specifies the scaling rule
+                                        type (Pods, Percent)
+                                      enum:
+                                      - Pods
+                                      - Percent
+                                      type: string
+                                    value:
+                                      description: Value specifies the scaling amount
+                                      format: int32
+                                      type: integer
+                                  required:
+                                  - type
+                                  - value
+                                  type: object
+                                type: array
+                              selectPolicy:
+                                default: Max
+                                description: SelectPolicy specifies which policy to
+                                  use (Min, Max, Disabled)
+                                enum:
+                                - Min
+                                - Max
+                                - Disabled
+                                type: string
+                              stabilizationWindowSeconds:
+                                default: 300
+                                description: StabilizationWindowSeconds specifies
+                                  how long to wait before another scaling operation
+                                format: int32
+                                type: integer
+                            type: object
+                          scaleUp:
+                            description: ScaleUp configures scale-up behavior
+                            properties:
+                              policies:
+                                description: Policies defines scaling rate policies
+                                items:
+                                  description: ScalingPolicyRule defines a single
+                                    scaling policy rule
+                                  properties:
+                                    periodSeconds:
+                                      default: 60
+                                      description: PeriodSeconds specifies the time
+                                        period for this rule
+                                      format: int32
+                                      type: integer
+                                    type:
+                                      description: Type specifies the scaling rule
+                                        type (Pods, Percent)
+                                      enum:
+                                      - Pods
+                                      - Percent
+                                      type: string
+                                    value:
+                                      description: Value specifies the scaling amount
+                                      format: int32
+                                      type: integer
+                                  required:
+                                  - type
+                                  - value
+                                  type: object
+                                type: array
+                              selectPolicy:
+                                default: Max
+                                description: SelectPolicy specifies which policy to
+                                  use (Min, Max, Disabled)
+                                enum:
+                                - Min
+                                - Max
+                                - Disabled
+                                type: string
+                              stabilizationWindowSeconds:
+                                default: 300
+                                description: StabilizationWindowSeconds specifies
+                                  how long to wait before another scaling operation
+                                format: int32
+                                type: integer
+                            type: object
+                        type: object
+                      targetCPUUtilizationPercentage:
+                        default: 70
+                        description: TargetCPUUtilizationPercentage specifies the
+                          target CPU utilization
+                        format: int32
+                        maximum: 100
+                        minimum: 1
+                        type: integer
+                      targetMemoryUtilizationPercentage:
+                        default: 80
+                        description: TargetMemoryUtilizationPercentage specifies the
+                          target memory utilization
+                        format: int32
+                        maximum: 100
+                        minimum: 1
+                        type: integer
+                      targetRequestsPerSecond:
+                        default: 50
+                        description: TargetRequestsPerSecond specifies the target
+                          requests per second per pod
+                        format: int32
+                        minimum: 1
+                        type: integer
+                    type: object
+                  storageExpansion:
+                    description: StorageExpansion configures automatic storage expansion
+                    properties:
+                      checkIntervalSeconds:
+                        default: 300
+                        description: CheckIntervalSeconds specifies how often to check
+                          storage usage
+                        format: int32
+                        type: integer
+                      enabled:
+                        default: false
+                        description: Enabled specifies whether storage auto-expansion
+                          should be enabled
+                        type: boolean
+                      expansionPercentage:
+                        default: 50
+                        description: ExpansionPercentage specifies how much to expand
+                          storage by
+                        format: int32
+                        maximum: 200
+                        minimum: 10
+                        type: integer
+                      maxCapacity:
+                        description: MaxCapacity specifies the maximum storage capacity
+                          allowed
+                        type: string
+                      thresholdPercentage:
+                        default: 80
+                        description: ThresholdPercentage specifies the usage threshold
+                          to trigger expansion
+                        format: int32
+                        maximum: 99
+                        minimum: 1
+                        type: integer
+                    type: object
+                type: object
+              podAntiAffinity:
+                description: PodAntiAffinity configures pod anti-affinity to spread
+                  pods across nodes
+                properties:
+                  enabled:
+                    default: true
+                    description: Enabled specifies whether pod anti-affinity should
+                      be configured
+                    type: boolean
+                  topologyKey:
+                    default: kubernetes.io/hostname
+                    description: TopologyKey specifies the topology key for anti-affinity
+                    type: string
+                  type:
+                    default: soft
+                    description: 'Type specifies the type of anti-affinity: "soft"
+                      for preferred or "hard" for required'
+                    enum:
+                    - soft
+                    - hard
+                    type: string
+                required:
+                - enabled
+                type: object
+              size:
+                default: 3
+                description: Size defines the number of nodes in the rqlite cluster.
+                format: int32
+                minimum: 1
+                type: integer
+              storageCapacity:
+                default: 1Gi
+                description: StorageCapacity specifies the size of PersistentVolume
+                  for each replica
+                type: string
+              storageClassName:
+                description: StorageClassName specifies the StorageClass for PersistentVolumes
+                type: string
+              updateStrategy:
+                description: UpdateStrategy configures rolling update behavior
+                properties:
+                  rollingUpdate:
+                    description: RollingUpdate configures rolling update parameters
+                    properties:
+                      leaderUpdatePolicy:
+                        default: LeaderLast
+                        description: LeaderUpdatePolicy defines how leader updates
+                          are handled
+                        enum:
+                        - LeaderLast
+                        - LeaderFirst
+                        - Automatic
+                        type: string
+                      maxUnavailable:
+                        default: 1
+                        description: MaxUnavailable specifies the max number of pods
+                          that can be unavailable during update
+                        format: int32
+                        type: integer
+                      rollbackOnFailure:
+                        default: true
+                        description: RollbackOnFailure enables automatic rollback
+                          on failed updates
+                        type: boolean
+                      updateTimeout:
+                        default: 300
+                        description: UpdateTimeout specifies timeout for single pod
+                          update in seconds
+                        format: int32
+                        type: integer
+                    type: object
+                  type:
+                    default: RollingUpdate
+                    description: Type specifies the update strategy type
+                    enum:
+                    - RollingUpdate
+                    - OnDelete
+                    type: string
+                type: object
+              version:
+                description: Version defines the rqlite version to use.
+                minLength: 1
+                type: string
+            required:
+            - size
+            - version
+            type: object
+          status:
+            description: RqliteClusterStatus defines the observed state of RqliteCluster.
+            properties:
+              clusterNodes:
+                description: ClusterNodes contains information about all cluster nodes
+                items:
+                  description: NodeStatus represents the status of a single rqlite
+                    node
+                  properties:
+                    address:
+                      description: Address is the network address of the node
+                      type: string
+                    id:
+                      description: ID is the unique identifier of the rqlite node
+                      type: string
+                    lastContact:
+                      description: LastContact is the last time this node was contacted
+                      format: date-time
+                      type: string
+                    reachable:
+                      description: Reachable indicates if the node is currently reachable
+                      type: boolean
+                    state:
+                      description: State represents the raft state of the node (Leader,
+                        Follower, Candidate)
+                      type: string
+                  required:
+                  - address
+                  - id
+                  - reachable
+                  - state
+                  type: object
+                type: array
+              conditions:
+                description: Conditions represent the latest available observations
+                  of an object's state.
+                items:
+                  description: Condition contains details for one aspect of the current
+                    state of this API Resource.
+                  properties:
+                    lastTransitionTime:
+                      description: |-
+                        lastTransitionTime is the last time the condition transitioned from one status to another.
+                        This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+                      format: date-time
+                      type: string
+                    message:
+                      description: |-
+                        message is a human readable message indicating details about the transition.
+                        This may be an empty string.
+                      maxLength: 32768
+                      type: string
+                    observedGeneration:
+                      description: |-
+                        observedGeneration represents the .metadata.generation that the condition was set based upon.
+                        For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+                        with respect to the current state of the instance.
+                      format: int64
+                      minimum: 0
+                      type: integer
+                    reason:
+                      description: |-
+                        reason contains a programmatic identifier indicating the reason for the condition's last transition.
+                        Producers of specific condition types may define expected values and meanings for this field,
+                        and whether the values are considered a guaranteed API.
+                        The value should be a CamelCase string.
+                        This field may not be empty.
+                      maxLength: 1024
+                      minLength: 1
+                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                      type: string
+                    status:
+                      description: status of the condition, one of True, False, Unknown.
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                      type: string
+                    type:
+                      description: type of condition in CamelCase or in foo.example.com/CamelCase.
+                      maxLength: 316
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - type
+                x-kubernetes-list-type: map
+              currentReplicas:
+                description: CurrentReplicas is the current number of rqlite pods
+                  manages by this cluster.
+                format: int32
+                type: integer
+              lastLeaderChange:
+                description: LastLeaderChange is the timestamp when leadership last
+                  changed
+                format: date-time
+                type: string
+              leader:
+                description: Leader identifies the current leader node in the rqlite
+                  cluster
+                type: string
+              leaderID:
+                description: LeaderID is the unique identifier of the current leader
+                type: string
+              observedGeneration:
+                description: ObservedGeneration reflects the generation of the RqliteClusterSpec
+                  that was last processed by the controller.
+                format: int64
+                type: integer
+              readyReplicas:
+                description: ReadyReplicas is the number of rqlite pods ready to serve
+                  requests.
+                format: int32
+                type: integer
+              scalingStatus:
+                description: ScalingStatus tracks the current auto-scaling status
+                properties:
+                  conditions:
+                    description: Conditions represent scaling-related conditions
+                    items:
+                      description: Condition contains details for one aspect of the
+                        current state of this API Resource.
+                      properties:
+                        lastTransitionTime:
+                          description: |-
+                            lastTransitionTime is the last time the condition transitioned from one status to another.
+                            This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+                          format: date-time
+                          type: string
+                        message:
+                          description: |-
+                            message is a human readable message indicating details about the transition.
+                            This may be an empty string.
+                          maxLength: 32768
+                          type: string
+                        observedGeneration:
+                          description: |-
+                            observedGeneration represents the .metadata.generation that the condition was set based upon.
+                            For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+                            with respect to the current state of the instance.
+                          format: int64
+                          minimum: 0
+                          type: integer
+                        reason:
+                          description: |-
+                            reason contains a programmatic identifier indicating the reason for the condition's last transition.
+                            Producers of specific condition types may define expected values and meanings for this field,
+                            and whether the values are considered a guaranteed API.
+                            The value should be a CamelCase string.
+                            This field may not be empty.
+                          maxLength: 1024
+                          minLength: 1
+                          pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                          type: string
+                        status:
+                          description: status of the condition, one of True, False,
+                            Unknown.
+                          enum:
+                          - "True"
+                          - "False"
+                          - Unknown
+                          type: string
+                        type:
+                          description: type of condition in CamelCase or in foo.example.com/CamelCase.
+                          maxLength: 316
+                          pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                          type: string
+                      required:
+                      - lastTransitionTime
+                      - message
+                      - reason
+                      - status
+                      - type
+                      type: object
+                    type: array
+                    x-kubernetes-list-map-keys:
+                    - type
+                    x-kubernetes-list-type: map
+                  currentMetrics:
+                    description: CurrentMetrics contains current metric values
+                    items:
+                      description: MetricValue represents a current metric value
+                      properties:
+                        name:
+                          description: Name is the name of the metric
+                          type: string
+                        timestamp:
+                          description: Timestamp is when this metric was last updated
+                          format: date-time
+                          type: string
+                        value:
+                          description: Value is the current value of the metric
+                          type: string
+                      required:
+                      - name
+                      - value
+                      type: object
+                    type: array
+                  hpaEnabled:
+                    description: HPAEnabled indicates if HPA is currently active
+                    type: boolean
+                  lastScaleReason:
+                    description: LastScaleReason contains the reason for the last
+                      scaling operation
+                    type: string
+                  lastScaleTime:
+                    description: LastScaleTime is when the cluster was last scaled
+                    format: date-time
+                    type: string
+                  lastStorageExpansion:
+                    description: LastStorageExpansion is when storage was last expanded
+                    format: date-time
+                    type: string
+                  storageExpansionEnabled:
+                    description: StorageExpansionEnabled indicates if storage auto-expansion
+                      is active
+                    type: boolean
+                  storageUsagePercentage:
+                    additionalProperties:
+                      format: int32
+                      type: integer
+                    description: StorageUsagePercentage contains current storage usage
+                      per pod
+                    type: object
+                type: object
+              updateStatus:
+                description: UpdateStatus tracks the current rolling update status
+                properties:
+                  completionTime:
+                    description: CompletionTime is when the update completed
+                    format: date-time
+                    type: string
+                  currentVersion:
+                    description: CurrentVersion is the currently deployed version
+                    type: string
+                  lastError:
+                    description: LastError contains the last error encountered during
+                      update
+                    type: string
+                  phase:
+                    description: Phase indicates the current phase of the update
+                    enum:
+                    - Pending
+                    - InProgress
+                    - Paused
+                    - Completed
+                    - Failed
+                    - RolledBack
+                    type: string
+                  rollbackReason:
+                    description: RollbackReason contains the reason for rollback if
+                      applicable
+                    type: string
+                  startTime:
+                    description: StartTime is when the update started
+                    format: date-time
+                    type: string
+                  targetVersion:
+                    description: TargetVersion is the target version for the update
+                    type: string
+                  totalReplicas:
+                    description: TotalReplicas is the total number of replicas in
+                      the cluster
+                    format: int32
+                    type: integer
+                  updatedReplicas:
+                    description: UpdatedReplicas is the number of replicas that have
+                      been updated
+                    format: int32
+                    type: integer
+                type: object
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

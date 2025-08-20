@@ -1,0 +1,33 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: rqlite-operator-local-metrics
+  namespace: rqlite-operator-system
+  labels:
+    app.kubernetes.io/name: rqlite-operator
+    app.kubernetes.io/component: local-metrics
+spec:
+  endpoints:
+  - path: /metrics
+    port: "8080"
+    interval: 30s
+    scrapeTimeout: 10s
+    targetPort: 8080
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: rqlite-operator-local
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rqlite-operator-local-metrics
+  namespace: rqlite-operator-system
+  labels:
+    app.kubernetes.io/name: rqlite-operator-local
+spec:
+  type: ExternalName
+  externalName: host.docker.internal
+  ports:
+  - name: "8080"
+    port: 8080
+    targetPort: 8080

@@ -1,0 +1,36 @@
+apiVersion: rqlite.example.com/v1alpha1
+kind: RqliteCluster
+metadata:
+  name: rolling-update-cluster
+  namespace: default
+  labels:
+    app.kubernetes.io/name: rqlite
+    app.kubernetes.io/instance: rolling-update-cluster
+    app.kubernetes.io/component: database
+spec:
+  # Cluster configuration for testing rolling updates
+  size: 5
+  version: "8.39.0"  # Starting version for update testing
+  
+  # Storage configuration
+  storageClassName: "standard"
+  storageCapacity: "1Gi"
+  
+  # Pod anti-affinity
+  podAntiAffinity:
+    enabled: true
+    type: "soft"
+    topologyKey: "kubernetes.io/hostname"
+  
+  # Advanced rolling update configuration
+  updateStrategy:
+    type: "RollingUpdate"
+    rollingUpdate:
+      maxUnavailable: 1               # Conservative approach
+      leaderUpdatePolicy: "LeaderLast" # Update leader last for stability
+      updateTimeout: 300              # 5 minutes per pod
+      rollbackOnFailure: true         # Auto-rollback on failure
+  
+  # Note: To test rolling updates, change the version field above
+  # For example, change from "8.39.0" to "latest" and apply
+  # The operator will perform a leader-aware rolling update

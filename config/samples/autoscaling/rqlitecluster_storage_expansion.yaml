@@ -1,0 +1,33 @@
+apiVersion: rqlite.example.com/v1alpha1
+kind: RqliteCluster
+metadata:
+  name: storage-expansion-cluster
+  namespace: default
+  labels:
+    app.kubernetes.io/name: rqlite
+    app.kubernetes.io/instance: storage-expansion-cluster
+    app.kubernetes.io/component: database
+spec:
+  # Basic cluster configuration
+  size: 3
+  version: "latest"
+  
+  # Storage configuration with small initial size for testing expansion
+  storageClassName: "standard"
+  storageCapacity: "500Mi"
+  
+  # Enable only storage auto-expansion (no HPA)
+  autoScaling:
+    enabled: true
+    
+    # Disable HPA for this example
+    hpa:
+      enabled: false
+    
+    # Focus on storage expansion
+    storageExpansion:
+      enabled: true
+      thresholdPercentage: 70      # Expand when 70% full (earlier threshold for testing)
+      expansionPercentage: 100     # Double the storage
+      maxCapacity: "5Gi"           # Maximum storage limit
+      checkIntervalSeconds: 60     # Check every minute for testing

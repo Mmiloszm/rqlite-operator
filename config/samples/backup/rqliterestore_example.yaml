@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: restore-source-storage
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: standard
+---
+apiVersion: rqlite.example.com/v1alpha1
+kind: RqliteRestore
+metadata:
+  name: restore-from-backup
+  namespace: default
+  labels:
+    app.kubernetes.io/name: rqlite-restore
+    app.kubernetes.io/instance: restore-from-backup
+    app.kubernetes.io/component: restore
+spec:
+  # Reference to the cluster to restore to
+  clusterName: basic-cluster
+  
+  # Restore from a specific backup
+  backupName: manual-backup

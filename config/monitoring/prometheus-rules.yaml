@@ -1,0 +1,175 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: rqlite-operator-alerts
+  namespace: default
+  labels:
+    app.kubernetes.io/name: rqlite-operator
+    app.kubernetes.io/component: alerting
+    release: prometheus
+spec:
+  groups:
+  - name: rqlite.cluster.health
+    interval: 30s
+    rules:
+    - alert: RqliteClusterUnhealthy
+      expr: rqlite_cluster_health < 0.7
+      for: 2m
+      labels:
+        severity: warning
+        component: rqlite-cluster
+      annotations:
+        summary: "Rqlite cluster {{ $labels.cluster }} is unhealthy"
+        description: "Cluster {{ $labels.cluster }} in namespace {{ $labels.namespace }} has health score {{ $value | humanizePercentage }}. Less than 70% of nodes are ready."
+
+    - alert: RqliteQuorumLost
+      expr: rqlite_quorum_status == 0
+      for: 1m
+      labels:
+        severity: critical
+        component: rqlite-cluster
+      annotations:
+        summary: "Rqlite cluster {{ $labels.cluster }} has lost quorum"
+        description: "Cluster {{ $labels.cluster }} in namespace {{ $labels.namespace }} has lost quorum. Immediate attention required."
+
+    - alert: RqliteNodeUnreachable
+      expr: rqlite_node_reachable == 0
+      for: 5m
+      labels:
+        severity: warning
+        component: rqlite-node
+      annotations:
+        summary: "Rqlite node {{ $labels.node }} is unreachable"
+        description: "Node {{ $labels.node }} in cluster {{ $labels.cluster }} has been unreachable for more than 5 minutes."
+
+  - name: rqlite.performance
+    interval: 30s
+    rules:
+    - alert: RqliteHighQueryLatency
+      expr: histogram_quantile(0.95, rate(rqlite_query_duration_seconds_bucket[5m])) > 1
+      for: 5m
+      labels:
+        severity: warning
+        component: rqlite-performance
+      annotations:
+        summary: "High query latency in cluster {{ $labels.cluster }}"
+        description: "95th percentile query latency for {{ $labels.query_type }} queries in cluster {{ $labels.cluster }} is {{ $value }}s, which is above 1 second threshold."
+
+    - alert: RqliteFrequentLeaderChanges
+      expr: increase(rqlite_leader_changes_total[15m]) > 3
+      for: 1m
+      labels:
+        severity: warning
+        component: rqlite-consensus
+      annotations:
+        summary: "Frequent leader changes in cluster {{ $labels.cluster }}"
+        description: "Cluster {{ $labels.cluster }} has experienced {{ $value }} leader changes in the last 15 minutes, indicating possible network or consensus issues."
+
+  - name: rqlite.storage
+    interval: 60s
+    rules:
+    - alert: RqliteHighDiskUsage
+      expr: rqlite_disk_usage_bytes / (1024 * 1024 * 1024) > 8
+      for: 10m
+      labels:
+        severity: warning
+        component: rqlite-storage
+      annotations:
+        summary: "High disk usage on node {{ $labels.node }}"
+        description: "Node {{ $labels.node }} in cluster {{ $labels.cluster }} is using {{ $value | humanize1024 }}B of disk space, which is above 8GB threshold."
+
+    - alert: RqliteBackupAge
+      expr: rqlite_last_backup_age_seconds / 3600 > 25
+      for: 5m
+      labels:
+        severity: warning
+        component: rqlite-backup
+      annotations:
+        summary: "Rqlite backup is stale for cluster {{ $labels.cluster }}"
+        description: "Last backup for cluster {{ $labels.cluster }} was {{ $value | humanizeDuration }} ago, which exceeds 25 hour threshold."
+
+  - name: rqlite.scaling
+    interval: 30s
+    rules:
+    - alert: RqliteAutoScalingFailure
+      expr: increase(rqlite_scaling_events_total{direction="failed"}[1h]) > 0
+      for: 1m
+      labels:
+        severity: warning
+        component: rqlite-autoscaling
+      annotations:
+        summary: "Auto-scaling failures in cluster {{ $labels.cluster }}"
+        description: "Cluster {{ $labels.cluster }} has experienced {{ $value }} auto-scaling failures in the last hour."
+
+    - alert: RqliteHighRequestRate
+      expr: avg(rqlite_requests_per_second{type="total"}) by (cluster, namespace) > 100
+      for: 2m
+      labels:
+        severity: warning
+        component: rqlite-performance
+      annotations:
+        summary: "High request rate in cluster {{ $labels.cluster }}"
+        description: "Cluster {{ $labels.cluster }} is handling {{ $value }} requests per second, which may require scaling attention."
+
+    - alert: RqliteQuorumViolationRisk
+      expr: (count(rqlite_node_status == 1) by (cluster, namespace)) % 2 == 0
+      for: 1m
+      labels:
+        severity: critical
+        component: rqlite-quorum
+      annotations:
+        summary: "Even number of nodes in cluster {{ $labels.cluster }}"
+        description: "Cluster {{ $labels.cluster }} has an even number of active nodes, which violates raft quorum requirements."
+
+    - alert: RqliteFrequentStorageExpansions
+      expr: increase(rqlite_storage_expansions_total[24h]) > 5
+      for: 1m
+      labels:
+        severity: info
+        component: rqlite-storage
+      annotations:
+        summary: "Frequent storage expansions in cluster {{ $labels.cluster }}"
+        description: "Cluster {{ $labels.cluster }} has had {{ $value }} storage expansions in the last 24 hours. Consider reviewing storage allocation."
+
+    # Recording rules for HPA custom metrics
+    - record: rqlite:requests_per_second_per_pod
+      expr: |
+        avg(rqlite_requests_per_second{type="total"}) by (cluster, namespace, node)
+      labels:
+        metric_type: "hpa_scaling"
+
+    - record: rqlite:cluster_average_requests_per_second
+      expr: |
+        avg(rqlite_requests_per_second{type="total"}) by (cluster, namespace)
+      labels:
+        metric_type: "hpa_scaling"
+
+  - name: rqlite.capacity
+    interval: 300s
+    rules:
+    - record: rqlite:cluster_capacity_trend
+      expr: |
+        predict_linear(
+          rqlite_disk_usage_bytes[6h], 
+          24 * 3600
+        )
+      labels:
+        metric_type: "capacity_planning"
+
+    - record: rqlite:cluster_performance_baseline
+      expr: |
+        avg_over_time(
+          histogram_quantile(0.95, rate(rqlite_query_duration_seconds_bucket[5m]))[1h:]
+        )
+      labels:
+        metric_type: "performance_baseline"
+
+    - alert: RqliteCapacityPlanningAlert
+      expr: rqlite:cluster_capacity_trend > 10 * 1024 * 1024 * 1024
+      for: 1m
+      labels:
+        severity: info
+        component: rqlite-capacity
+      annotations:
+        summary: "Capacity planning alert for cluster {{ $labels.cluster }}"
+        description: "Based on current growth trends, cluster {{ $labels.cluster }} will reach 10GB storage usage within 24 hours. Consider scaling storage."

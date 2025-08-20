@@ -1,0 +1,94 @@
+apiVersion: rqlite.example.com/v1alpha1
+kind: RqliteCluster
+metadata:
+  name: large-scale-cluster
+  namespace: production
+  labels:
+    app.kubernetes.io/name: rqlite
+    app.kubernetes.io/instance: large-scale-cluster
+    app.kubernetes.io/component: database
+    app.kubernetes.io/version: "8.39.0"
+    environment: production
+    tier: database
+    scale: large
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8080"
+spec:
+  # Large-scale cluster configuration
+  size: 9    # Start with 9 nodes for high availability
+  version: "8.39.0"
+  
+  # High-performance storage for large scale
+  storageClassName: "fast-nvme"
+  storageCapacity: "10Gi"
+  
+  # Zone-level anti-affinity for maximum availability
+  podAntiAffinity:
+    enabled: true
+    type: "hard"
+    topologyKey: "topology.kubernetes.io/zone"
+  
+  # Careful update strategy for large clusters
+  updateStrategy:
+    type: "RollingUpdate"
+    rollingUpdate:
+      maxUnavailable: 2          # Allow 2 nodes down in large cluster
+      leaderUpdatePolicy: "LeaderLast"
+      updateTimeout: 900         # 15 minutes for large deployments
+      rollbackOnFailure: true
+  
+  # Aggressive auto-scaling for large workloads
+  autoScaling:
+    enabled: true
+    
+    hpa:
+      enabled: true
+      minReplicas: 9     # Large minimum cluster
+      maxReplicas: 21    # Scale up to 21 nodes (odd number)
+      
+      # Aggressive scaling thresholds
+      targetCPUUtilizationPercentage: 50
+      targetMemoryUtilizationPercentage: 60
+      
+      # Large-scale optimized metrics
+      customMetrics:
+        - name: rqlite_p95_read_latency_ms
+          type: External
+          targetValue: "2"   # Very strict latency for large scale
+          description: "P95 read query latency in milliseconds"
+        
+        - name: rqlite_cluster_health
+          type: External
+          targetValue: "0.95"  # Very high health requirement
+          description: "Overall cluster health score"
+        
+        - name: rqlite_query_rate
+          type: External
+          targetValue: "1000"  # High query throughput threshold
+          description: "Queries per second across cluster"
+      
+      # Large-scale scaling behavior
+      scaleBehavior:
+        scaleUp:
+          stabilizationWindowSeconds: 120  # Quick response to load
+          selectPolicy: "Max"
+          policies:
+            - type: "Pods"
+              value: 4          # Scale by 4 pods (2 per AZ)
+              periodSeconds: 60
+        scaleDown:
+          stabilizationWindowSeconds: 1800  # Conservative scale down (30 min)
+          selectPolicy: "Min"
+          policies:
+            - type: "Pods"
+              value: 2
+              periodSeconds: 600
+    
+    # Large-scale storage management
+    storageExpansion:
+      enabled: true
+      thresholdPercentage: 70
+      expansionPercentage: 20    # Conservative for large storage
+      maxCapacity: "1Ti"         # Very large maximum capacity
+      checkIntervalSeconds: 180  # More frequent checks

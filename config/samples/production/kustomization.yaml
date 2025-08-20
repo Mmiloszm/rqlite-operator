@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- rqlitecluster_production.yaml
+- rqlitecluster_large_scale.yaml
+
+namespace: production
+
+commonLabels:
+  example: production-ready
+  environment: production

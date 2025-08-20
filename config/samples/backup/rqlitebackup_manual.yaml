@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: backup-storage
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: standard
+---
+apiVersion: rqlite.example.com/v1alpha1
+kind: RqliteBackup
+metadata:
+  name: manual-backup
+  namespace: default
+  labels:
+    app.kubernetes.io/name: rqlite-backup
+    app.kubernetes.io/instance: manual-backup
+    app.kubernetes.io/component: backup
+spec:
+  # Reference to the cluster to backup
+  clusterName: basic-cluster
+  
+  # Storage configuration for backup
+  storage:
+    pvc:
+      name: backup-storage
+      filename: manual-backup.db

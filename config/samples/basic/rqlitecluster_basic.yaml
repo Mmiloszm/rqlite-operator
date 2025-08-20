@@ -1,0 +1,23 @@
+apiVersion: rqlite.example.com/v1alpha1
+kind: RqliteCluster
+metadata:
+  name: basic-cluster
+  namespace: default
+  labels:
+    app.kubernetes.io/name: rqlite
+    app.kubernetes.io/instance: basic-cluster
+    app.kubernetes.io/component: database
+spec:
+  # Basic cluster configuration
+  size: 3
+  version: "latest"
+  
+  # Storage configuration
+  # storageClassName: "standard"  # Optional: specify storage class, uses default if omitted
+  storageCapacity: "1Gi"
+  
+  # Basic pod anti-affinity for node distribution
+  podAntiAffinity:
+    enabled: true
+    type: "soft"
+    topologyKey: "kubernetes.io/hostname"

@@ -1,0 +1,32 @@
+apiVersion: rqlite.example.com/v1alpha1
+kind: RqliteCluster
+metadata:
+  name: custom-config-cluster
+  namespace: default
+  labels:
+    app.kubernetes.io/name: rqlite
+    app.kubernetes.io/instance: custom-config-cluster
+    app.kubernetes.io/component: database
+spec:
+  # Custom cluster configuration example
+  size: 7
+  version: "8.39.0"
+  
+  # Storage configuration with larger capacity
+  storageClassName: "standard"
+  storageCapacity: "2Gi"
+  
+  # Pod anti-affinity with custom topology
+  podAntiAffinity:
+    enabled: true
+    type: "soft"
+    topologyKey: "topology.kubernetes.io/zone"  # Spread across zones
+  
+  # Custom update strategy
+  updateStrategy:
+    type: "RollingUpdate"
+    rollingUpdate:
+      maxUnavailable: 2               # Allow 2 pods down for faster updates
+      leaderUpdatePolicy: "LeaderFirst"  # Update leader first (for testing)
+      updateTimeout: 180              # 3 minutes timeout
+      rollbackOnFailure: false        # Manual rollback control

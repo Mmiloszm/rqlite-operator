@@ -1,0 +1,71 @@
+apiVersion: rqlite.example.com/v1alpha1
+kind: RqliteCluster
+metadata:
+  name: autoscaling-cluster
+  namespace: default
+  labels:
+    app.kubernetes.io/name: rqlite
+    app.kubernetes.io/instance: autoscaling-cluster
+    app.kubernetes.io/component: database
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8080"
+spec:
+  # Initial cluster size (will auto-scale)
+  size: 3
+  version: "latest"
+  
+  # Storage configuration
+  storageCapacity: "1Gi"
+  
+  # Pod anti-affinity for availability
+  podAntiAffinity:
+    enabled: true
+    type: "soft"
+    topologyKey: "kubernetes.io/hostname"
+  
+  # Auto-scaling configuration
+  autoScaling:
+    enabled: true
+    
+    # Horizontal Pod Autoscaler settings
+    hpa:
+      enabled: true
+      minReplicas: 3    # Minimum for quorum
+      maxReplicas: 9    # Maximum odd number
+      
+      # Resource-based scaling
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+      
+      # Custom metrics for intelligent scaling
+      customMetrics:
+        - name: rqlite_p95_read_latency_ms
+          type: External
+          targetValue: "10"  # Scale up if p95 latency > 10ms
+          description: "P95 read query latency in milliseconds"
+      
+      # Scaling behavior policies
+      scaleBehavior:
+        scaleUp:
+          stabilizationWindowSeconds: 60    # Wait 1 min before scaling up
+          selectPolicy: "Max"
+          policies:
+            - type: "Pods"
+              value: 2                      # Scale by 2 pods (maintain odd count)
+              periodSeconds: 60
+        scaleDown:
+          stabilizationWindowSeconds: 300   # Wait 5 min before scaling down
+          selectPolicy: "Min"
+          policies:
+            - type: "Pods"
+              value: 2                      # Scale by 2 pods (maintain odd count)
+              periodSeconds: 120
+    
+    # Storage auto-expansion
+    storageExpansion:
+      enabled: true
+      thresholdPercentage: 80      # Expand when 80% full
+      expansionPercentage: 50      # Increase by 50%
+      maxCapacity: "5Gi"           # Maximum storage limit
+      checkIntervalSeconds: 300    # Check every 5 minutes

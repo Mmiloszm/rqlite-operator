@@ -1,0 +1,33 @@
+## Append samples of your project ##
+# Main kustomization for all sample configurations
+# Deploy specific categories with: kubectl apply -k config/samples/basic/
+# Deploy all samples with: kubectl apply -k config/samples/
+
+resources:
+# Original samples (basic examples)
+- rqlite_v1alpha1_rqlitecluster.yaml
+- rqlite_v1alpha1_rqlitebackup.yaml
+- rqlite_v1alpha1_rqlitescheduledbackup.yaml
+- rqlite_v1alpha1_rqliterestore.yaml
+
+# Organized samples by feature (recommended starting point)
+- basic/rqlitecluster_basic.yaml
+
+# Advanced features (uncomment as needed)
+# - advanced/rqlitecluster_ha.yaml
+# - autoscaling/rqlitecluster_autoscaling.yaml
+# - monitoring/rqlitecluster_monitoring.yaml
+
+# Backup examples (requires cluster to be running first)
+# - backup/rqlitebackup_manual.yaml
+# - backup/rqlitescheduledbackup_daily.yaml
+
+# Production examples (deploy to production namespace)
+# - production/rqlitecluster_production.yaml
+
+# +kubebuilder:scaffold:manifestskustomizesamples
+
+namespace: default
+
+commonLabels:
+  app.kubernetes.io/managed-by: rqlite-operator

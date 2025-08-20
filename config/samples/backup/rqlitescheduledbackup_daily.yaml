@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: scheduled-backup-storage
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard
+---
+apiVersion: rqlite.example.com/v1alpha1
+kind: RqliteScheduledBackup
+metadata:
+  name: daily-backup
+  namespace: default
+  labels:
+    app.kubernetes.io/name: rqlite-backup
+    app.kubernetes.io/instance: daily-backup
+    app.kubernetes.io/component: scheduled-backup
+spec:
+  # Reference to the cluster to backup
+  clusterName: basic-cluster
+  
+  # Backup schedule (daily at 2 AM)
+  schedule: "0 2 * * *"
+  
+  # Backup template specification
+  backupSpecTemplate:
+    clusterName: basic-cluster
+    storage:
+      pvc:
+        name: scheduled-backup-storage
+        filename: daily-backup.db
+  
+  # Retention policy
+  retention:
+    keepLast: 7

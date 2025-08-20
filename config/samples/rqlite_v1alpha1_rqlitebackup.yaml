@@ -1,0 +1,9 @@
+apiVersion: rqlite.example.com/v1alpha1
+kind: RqliteBackup
+metadata:
+  labels:
+    app.kubernetes.io/name: rqlite-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: rqlitebackup-sample
+spec:
+  # TODO(user): Add fields here

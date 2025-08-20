@@ -1,0 +1,9 @@
+apiVersion: rqlite.example.com/v1alpha1
+kind: RqliteCluster
+metadata:
+  labels:
+    app.kubernetes.io/name: rqlite-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: rqlitecluster-sample
+spec:
+  # TODO(user): Add fields here

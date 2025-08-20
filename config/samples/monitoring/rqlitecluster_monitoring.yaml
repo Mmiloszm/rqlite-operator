@@ -1,0 +1,65 @@
+apiVersion: rqlite.example.com/v1alpha1
+kind: RqliteCluster
+metadata:
+  name: monitored-cluster
+  namespace: default
+  labels:
+    app.kubernetes.io/name: rqlite
+    app.kubernetes.io/instance: monitored-cluster
+    app.kubernetes.io/component: database
+    monitoring: enabled
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8080"
+    prometheus.io/path: "/metrics"
+spec:
+  # Cluster configuration optimized for monitoring
+  size: 3
+  version: "8.39.0"
+  
+  # Storage configuration
+  storageClassName: "standard"
+  storageCapacity: "1Gi"
+  
+  # Pod anti-affinity
+  podAntiAffinity:
+    enabled: true
+    type: "soft"
+    topologyKey: "kubernetes.io/hostname"
+  
+  # Enable auto-scaling with comprehensive metrics
+  autoScaling:
+    enabled: true
+    
+    hpa:
+      enabled: true
+      minReplicas: 3
+      maxReplicas: 9
+      
+      # Resource-based metrics
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+      
+      # Custom monitoring metrics
+      customMetrics:
+        - name: rqlite_p95_read_latency_ms
+          type: External
+          targetValue: "10"
+          description: "P95 read query latency in milliseconds"
+      
+      # Conservative scaling for monitoring stability
+      scaleBehavior:
+        scaleUp:
+          stabilizationWindowSeconds: 120
+          selectPolicy: "Max"
+          policies:
+            - type: "Pods"
+              value: 2
+              periodSeconds: 60
+        scaleDown:
+          stabilizationWindowSeconds: 600
+          selectPolicy: "Min"
+          policies:
+            - type: "Pods"
+              value: 2
+              periodSeconds: 180

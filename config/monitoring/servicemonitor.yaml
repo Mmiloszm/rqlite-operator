@@ -1,0 +1,43 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: rqlite-operator-metrics
+  namespace: rqlite-operator-system
+  labels:
+    control-plane: controller-manager
+    app.kubernetes.io/name: rqlite-operator
+    app.kubernetes.io/component: metrics
+    release: prometheus
+spec:
+  endpoints:
+  - path: /metrics
+    port: https
+    scheme: https
+    tlsConfig:
+      insecureSkipVerify: true
+    bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+  selector:
+    matchLabels:
+      control-plane: controller-manager
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: rqlite-clusters-metrics
+  namespace: default
+  labels:
+    app.kubernetes.io/name: rqlite-operator
+    app.kubernetes.io/component: cluster-metrics
+    release: prometheus
+spec:
+  endpoints:
+  - path: /status
+    port: http
+    interval: 30s
+    scrapeTimeout: 10s
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: rqlite
+      app.kubernetes.io/component: database
+  namespaceSelector:
+    any: true

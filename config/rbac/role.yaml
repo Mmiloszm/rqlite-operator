@@ -1,0 +1,112 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: manager-role
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - persistentvolumeclaims
+  - pods
+  - services
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - pods/exec
+  verbs:
+  - create
+- apiGroups:
+  - apps
+  resources:
+  - statefulsets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - autoscaling
+  resources:
+  - horizontalpodautoscalers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - policy
+  resources:
+  - poddisruptionbudgets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rqlite.example.com
+  resources:
+  - rqlitebackups
+  - rqliteclusters
+  - rqlitecontinuousbackups
+  - rqliterestores
+  - rqlitescheduledbackups
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rqlite.example.com
+  resources:
+  - rqlitebackups/finalizers
+  - rqliteclusters/finalizers
+  - rqlitecontinuousbackups/finalizers
+  - rqliterestores/finalizers
+  - rqlitescheduledbackups/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - rqlite.example.com
+  resources:
+  - rqlitebackups/status
+  - rqliteclusters/status
+  - rqlitecontinuousbackups/status
+  - rqliterestores/status
+  - rqlitescheduledbackups/status
+  verbs:
+  - get
+  - patch
+  - update
